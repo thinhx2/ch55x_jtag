@@ -327,7 +327,7 @@ void DeviceInterrupt(void) __interrupt (INT_NO_USB)					   //USB中断服务程�
 			}	
 		}
 		if(SOF_Count % 16 == 0)
-			PWM2 = 1;
+			PWM1_ = 1;
 #endif
 	}
 	if(UIF_TRANSFER)															//USB传输完成标志
@@ -908,13 +908,13 @@ void SerialPort_Config()
 	volatile uint32_t x;
 	volatile uint8_t x2;
 
-    /* P3.0 input */
-    P3_DIR_PU &= ~((1 << 0));
-	P3_MOD_OC &= ~((1 << 0));
+    /* P3.3 input */
+    P3_DIR_PU &= ~((1 << 3));
+	P3_MOD_OC &= ~((1 << 3));
 
-	/* P3.1 output */
-	P3_DIR_PU &= ((1 << 1));
-	P3_MOD_OC |= ~((1 << 1));
+	/* P3.4 output */
+	P3_DIR_PU &= ((1 << 4));
+	P3_MOD_OC |= ~((1 << 4));
 
 	SM0 = 0;
 	SM1 = 1;
@@ -1107,7 +1107,7 @@ void CLKO_Enable(void) //打开T2输出
 	P1_DIR_PU |= 0x01;
 }
 
-#define TMS T2EX
+#define TMS PWM2_
 #define TDI MOSI
 #define TDO MISO
 #define TCK SCK
@@ -1115,16 +1115,18 @@ void CLKO_Enable(void) //打开T2输出
 
 void JTAG_IO_Config(void)
 {
-	P1_DIR_PU |= ((1 << 1) | (1 << 5) | (1 << 7));
+	P1_DIR_PU |= ((1 << 5) | (1 << 7));
 	P1_DIR_PU &= ~((1 << 6) | (1 << 4));
 	P1_MOD_OC &= ~((1 << 1) | (1 << 5) | (1 << 7) | (1 << 6) | (1 << 4));
-	
+	P3_DIR_PU |= ((1 << 1));
+        P3_MOD_OC &= ~((1 << 1));
+
 	TMS = 0;
 	TDI = 0;
 	TDO = 0;
 	TCK = 0;
 	TCK_CONT = 0;
-	/* P1.1 TMS, P1.5 TDI(MOSI), P1.7 TCK PP */
+	/* P3.0 TMS, P1.5 TDI(MOSI), P1.7 TCK PP */
 	/* P1.6 TDO(MISO) INPUT */
 	/* P1.4 INPUT */
 }
@@ -1393,7 +1395,7 @@ void mTimer0Interrupt(void) __interrupt (INT_NO_TMR0)                          /
 		}
 	}
 	if(SOF_Count % 16 == 0)
-		PWM2 = 1;
+		PWM1_ = 1;
 }
 
 void init_timer() {
@@ -1438,7 +1440,7 @@ main()
 	JTAG_IO_Config();
 	SerialPort_Config();
 
-	PWM2 = 1;
+	PWM1_ = 1;
 	
 #if MPSSE_HWSPI
 	SPI_Init();
@@ -1478,7 +1480,7 @@ main()
 				if(UpPoint1_Ptr < 64 && UpPoint1_Busy == 0)
 			#endif
 				{
-					PWM2 = !PWM2;
+					PWM1_ = !PWM1_;
 						switch(Mpsse_Status)
 						{
 							case MPSSE_IDLE:
